@@ -19,10 +19,7 @@ d3.json(url).then(function(data) {
 
   // Update the chart based on the selected sample
   function updateChart(sampleId) {
-    // Find the selected sample data
     const selectedSample = samples.find(sample => sample.id === sampleId);
-
-    // Extract the top 10 OTUs
     const top10Values = selectedSample.sample_values.slice(0, 10).reverse();
     const top10Ids = selectedSample.otu_ids.slice(0, 10).map(id => `OTU ${id}`).reverse();
     const top10Labels = selectedSample.otu_labels.slice(0, 10).reverse();
@@ -41,10 +38,7 @@ d3.json(url).then(function(data) {
 
   // Update the bubble chart
   function updateBubbleChart(sampleId) {
-    // Find the selected sample data
     const selectedSample = samples.find(sample => sample.id === sampleId);
-
-    // Extract the sample data
     const otuIds = selectedSample.otu_ids;
     const sampleValues = selectedSample.sample_values;
     const otuLabels = selectedSample.otu_labels;
@@ -74,19 +68,58 @@ d3.json(url).then(function(data) {
     Plotly.newPlot('bubble', [trace], layout);
   }
 
-  function updateSampleMetadata(sampleId) {
-    // Find the selected sample metadata
+  // Update the gauge chart
+  function updateGaugeChart(sampleId) {
     const selectedMetadata = metadata.find(item => item.id === parseInt(sampleId));
+    const washingFreq = parseInt(selectedMetadata.wfreq);
 
-    // Select the sample metadata container
+    // Create the data for the gauge chart
+    const data = [
+      {
+        type: "indicator",
+        mode: "gauge+number",
+        value: washingFreq,
+        title: { text: "Belly Button Washing Frequency<br>Scrubs per Week", font: { size: 24 } },
+        gauge: {
+          axis: { range: [null, 9] },
+          steps: [
+              { range: [0, 1], color: "#115f9a" },
+              { range: [1, 2], color: "#1984c5" },
+              { range: [2, 3], color: "#22a7f0" },
+              { range: [3, 4], color: "#48b5c4" },
+              { range: [4, 5], color: "#76c68f" },
+              { range: [5, 6], color: "#a6d75b" },
+              { range: [6, 7], color: "#c9e52f" },
+              { range: [7, 8], color: "#d0ee11" },
+              { range: [8, 9], color: "#f4f100" }
+          ],
+          threshold: {
+            line: { color: "black", width: 6 },
+            thickness: 1.0,
+            value: washingFreq
+          },
+          bar: { color: "red", thickness: 0.6 },
+        }
+      }
+    ];
+
+    // Define the layout for the gauge chart
+    const layout = {
+      width: 500,
+      height: 400,
+      margin: { t: 0, b: 0 },
+    };
+
+    // Create the gauge chart
+    Plotly.newPlot('gauge', data, layout);
+  }
+
+  function updateSampleMetadata(sampleId) {
+    const selectedMetadata = metadata.find(item => item.id === parseInt(sampleId));
     const sampleMetadataContainer = d3.select("#sample-metadata");
-
-    // Clear any existing metadata
     sampleMetadataContainer.html("");
 
-    // Loop through each key-value pair in the sample's metadata
     Object.entries(selectedMetadata).forEach(([key, value]) => {
-      // Create a new paragraph element to display the key-value pair
       const metadataItem = sampleMetadataContainer
         .append("p")
         .text(`${key}: ${value}`);
@@ -98,12 +131,19 @@ d3.json(url).then(function(data) {
     const selectedSampleId = this.value;
     updateChart(selectedSampleId);
     updateBubbleChart(selectedSampleId);
+    updateGaugeChart(selectedSampleId);
     updateSampleMetadata(selectedSampleId);
   });
 
-  // Call the updateChart, updateBubbleChart, and updateSampleMetadata functions with the first sample ID initially
-  const initialSampleId = samples[0].id;
-  updateChart(initialSampleId);
-  updateBubbleChart(initialSampleId);
-  updateSampleMetadata(initialSampleId);
+  // Function to handle the initial loading and setup
+  function init() {
+    const initialSampleId = samples[0].id;
+    updateChart(initialSampleId);
+    updateBubbleChart(initialSampleId);
+    updateGaugeChart(initialSampleId);
+    updateSampleMetadata(initialSampleId);
+  }
+
+  // Initialize the dashboard
+  init();
 });
