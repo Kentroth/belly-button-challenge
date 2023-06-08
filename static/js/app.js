@@ -39,13 +39,71 @@ d3.json(url).then(function(data) {
     ]);
   }
 
+  // Update the bubble chart
+  function updateBubbleChart(sampleId) {
+    // Find the selected sample data
+    const selectedSample = samples.find(sample => sample.id === sampleId);
+
+    // Extract the sample data
+    const otuIds = selectedSample.otu_ids;
+    const sampleValues = selectedSample.sample_values;
+    const otuLabels = selectedSample.otu_labels;
+
+    // Create the trace for the bubble chart
+    const trace = {
+      x: otuIds,
+      y: sampleValues,
+      text: otuLabels,
+      mode: 'markers',
+      marker: {
+        size: sampleValues,
+        color: otuIds,
+        colorscale: 'Earth'
+      }
+    };
+
+    // Define the layout for the bubble chart
+    const layout = {
+      title: 'OTU Bubble Chart',
+      xaxis: { title: 'OTU ID' },
+      yaxis: { title: 'Sample Values' },
+      showlegend: false
+    };
+
+    // Create the bubble chart
+    Plotly.newPlot('bubble', [trace], layout);
+  }
+
+  function updateSampleMetadata(sampleId) {
+    // Find the selected sample metadata
+    const selectedMetadata = metadata.find(item => item.id === parseInt(sampleId));
+
+    // Select the sample metadata container
+    const sampleMetadataContainer = d3.select("#sample-metadata");
+
+    // Clear any existing metadata
+    sampleMetadataContainer.html("");
+
+    // Loop through each key-value pair in the sample's metadata
+    Object.entries(selectedMetadata).forEach(([key, value]) => {
+      // Create a new paragraph element to display the key-value pair
+      const metadataItem = sampleMetadataContainer
+        .append("p")
+        .text(`${key}: ${value}`);
+    });
+  }
+  
   // Event listener for the dropdown menu
   dropdownMenu.on("change", function() {
     const selectedSampleId = this.value;
     updateChart(selectedSampleId);
+    updateBubbleChart(selectedSampleId);
+    updateSampleMetadata(selectedSampleId);
   });
 
-  // Call the updateChart function with the first sample ID initially
+  // Call the updateChart, updateBubbleChart, and updateSampleMetadata functions with the first sample ID initially
   const initialSampleId = samples[0].id;
   updateChart(initialSampleId);
+  updateBubbleChart(initialSampleId);
+  updateSampleMetadata(initialSampleId);
 });
