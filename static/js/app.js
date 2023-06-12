@@ -27,7 +27,7 @@ d3.json(url).then(function(data) {
     // Update the bar chart
     Plotly.newPlot("bar", [
       {
-        type: "bar",
+        type: "bar", 
         x: top10Values,
         y: top10Ids,
         text: top10Labels,
